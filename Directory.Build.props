@@ -38,7 +38,9 @@
     </Reference>
   </ItemGroup>
 
-  <Target Name="CheckGameDir" BeforeTargets="Build" Condition="'$(HasGame)' != 'true'">
+  <!-- BeforeTargets="BeforeBuild" so this fires before compilation, otherwise a missing
+       game install surfaces as a wall of CS0246 missing-type errors instead. -->
+  <Target Name="CheckGameDir" BeforeTargets="BeforeBuild" Condition="'$(HasGame)' != 'true'">
     <Error Text="Cannot find the game's assemblies. Expected &quot;Probably Stolen_Data/Managed/Assembly-CSharp.dll&quot; under GameDir &quot;$(GameDir)&quot;. Clone this repository inside the game folder (next to Probably Stolen.exe), or point at an install explicitly: dotnet build -c Release -p:GameDir=&quot;/path/to/Probably Stolen&quot;" />
   </Target>
 
