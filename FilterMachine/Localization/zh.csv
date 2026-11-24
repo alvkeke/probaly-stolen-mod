@@ -1,0 +1,13 @@
+fm_name,过滤机
+fm_desc,"最多可装 36 个滤芯，让水从整排滤芯中流过。放入水容器后按下开始，机器会均匀消耗整排滤芯的耐久来过滤水。"
+fm_flavor,"从这里出去的每一瓶水，都带着一点心虚的味道。"
+fm_panel_filters,滤芯架
+fm_panel_water,水
+fm_panel_control,控制
+fm_button_start,开始
+fm_label_status,状态
+fm_status_idle,待机
+fm_status_no_water,请放入水容器
+fm_status_no_filters,请放入滤芯
+fm_status_filtered,"纯度 {0}% - 已去除 {1} 毫升"
+fm_status_clean,"纯度 {0}% - 无需过滤"

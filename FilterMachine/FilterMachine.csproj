@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>FilterMachine</AssemblyName>
+    <RootNamespace>FilterMachine</RootNamespace>
+  </PropertyGroup>
+
+  <!-- References to the game's assemblies, the GameDir detection and the install step
+       come from ../Directory.Build.props, shared by every mod in this repository. -->
+
+</Project>

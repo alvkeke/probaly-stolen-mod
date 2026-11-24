@@ -1,0 +1,64 @@
+<Project>
+
+  <!-- Shared settings for every mod in this repository. Imported automatically by the
+       .NET SDK for each project below this folder. -->
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <!-- Locate the game install: the folder holding Probably Stolen.exe. Searching upwards
+       from this file means no mod has to hardcode how deep it sits, and moving the whole
+       repository around keeps working as long as it stays inside the game folder. -->
+  <PropertyGroup>
+    <_GameExe>$([MSBuild]::GetPathOfFileAbove('Probably Stolen.exe', '$(MSBuildThisFileDirectory)'))</_GameExe>
+    <GameDir Condition="'$(GameDir)' == '' and '$(_GameExe)' != ''">$([System.IO.Path]::GetDirectoryName('$(_GameExe)'))</GameDir>
+    <ManagedDir Condition="'$(GameDir)' != ''">$([System.IO.Path]::GetFullPath('$(GameDir)/Probably Stolen_Data/Managed'))</ManagedDir>
+    <GameAssembly>$(ManagedDir)/Assembly-CSharp.dll</GameAssembly>
+    <HasGame Condition="Exists('$(GameAssembly)')">true</HasGame>
+  </PropertyGroup>
+
+  <!-- The game ships no SDK, so mods compile against the assemblies of a local install
+       while referencing them in place: Private=false keeps them out of the output, which
+       also keeps the mod folder free of assemblies the scanner would refuse. -->
+  <ItemGroup Condition="'$(HasGame)' == 'true'">
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(GameAssembly)</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ManagedDir)/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ManagedDir)/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="CheckGameDir" BeforeTargets="Build" Condition="'$(HasGame)' != 'true'">
+    <Error Text="Cannot find the game's assemblies. Expected &quot;Probably Stolen_Data/Managed/Assembly-CSharp.dll&quot; under GameDir &quot;$(GameDir)&quot;. Clone this repository inside the game folder (next to Probably Stolen.exe), or point at an install explicitly: dotnet build -c Release -p:GameDir=&quot;/path/to/Probably Stolen&quot;" />
+  </Target>
+
+  <!-- Installs a built mod into <game>/Mods/<project name>. Only the files the loader
+       expects are copied: building straight into Mods would leave a .pdb and a .deps.json
+       there, and the mod scanner flags files a manifest does not list. -->
+  <Target Name="InstallMod" AfterTargets="Build" Condition="'$(HasGame)' == 'true'">
+    <PropertyGroup>
+      <ModInstallDir>$([System.IO.Path]::GetFullPath('$(GameDir)/Mods/$(MSBuildProjectName)'))</ModInstallDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <_ModTexture Include="$(MSBuildProjectDirectory)/Textures/**/*.png" />
+      <_ModLocale Include="$(MSBuildProjectDirectory)/Localization/*.csv" />
+    </ItemGroup>
+    <MakeDir Directories="$(ModInstallDir)" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModInstallDir)" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)/manifest.xml" DestinationFolder="$(ModInstallDir)" Condition="Exists('$(MSBuildProjectDirectory)/manifest.xml')" />
+    <Copy SourceFiles="@(_ModTexture)" DestinationFiles="@(_ModTexture->'$(ModInstallDir)/Textures/%(RecursiveDir)%(Filename)%(Extension)')" Condition="'@(_ModTexture)' != ''" />
+    <Copy SourceFiles="@(_ModLocale)" DestinationFiles="@(_ModLocale->'$(ModInstallDir)/Localization/%(Filename)%(Extension)')" Condition="'@(_ModLocale)' != ''" />
+    <Message Importance="high" Text="$(MSBuildProjectName) installed to $(ModInstallDir)" />
+  </Target>
+
+</Project>

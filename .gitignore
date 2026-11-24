@@ -1,0 +1,19 @@
+# Build output (applies to every mod folder)
+**/bin/
+**/obj/
+**/dist/
+**/*.pdb
+**/*.deps.json
+**/*.user
+**/*.suo
+
+# Never commit game assemblies or any assembly. They belong to the game's
+# developer and are already on every player's disk.
+*.dll
+
+# Editors and OS
+.vs/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

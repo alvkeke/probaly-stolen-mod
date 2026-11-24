@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Manifest>
+  <ID>filter_machine</ID>
+  <Name>Filter Machine</Name>
+  <Author>alvkeke</Author>
+  <ModVersion>0.1.0</ModVersion>
+  <Description>A water filter machine, allow you to put multiple filter(s) in it for filtering water.</Description>
+  <GameVersions>
+    <!-- This build reports Application.version 0.46D, which normalises to 0.46. -->
+    <Version>0.46</Version>
+  </GameVersions>
+  <Prerequisites />
+  <Assemblies>
+    <Assembly>FilterMachine.dll</Assembly>
+  </Assemblies>
+  <Capabilities />
+</Manifest>
