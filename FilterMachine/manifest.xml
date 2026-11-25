@@ -4,7 +4,7 @@
   <Name>Filter Machine</Name>
   <Author>alvkeke</Author>
   <ModVersion>0.2.0</ModVersion>
-  <Description>A water filter machine, allow you to put multiple filter(s) in it for filtering water. Sold by the retired water merchant and Dr. Jackson.</Description>
+  <Description>A water filter machine, allow you to put multiple filter(s) in it for filtering water. Sold by Dr. Jackson.</Description>
   <GameVersions>
     <!-- This build reports Application.version 0.46D, which normalises to 0.46. -->
     <Version>0.46</Version>
