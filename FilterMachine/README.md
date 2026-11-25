@@ -23,8 +23,10 @@ Pressing Start runs the water in the container through the rack:
 - **Game-accurate numbers.** Filtering goes through the game's own `WaterHelper.HandleFilter`,
   so particle-size checks, `filterVolumeRemoved` and `filterDurabilityUsage` match the
   vanilla water pitcher exactly.
-- **Contaminants become water.** Filtered contaminant volume is converted to clean water,
-  the same way the vanilla purifier does it, so the container keeps its volume.
+- **Dirt leaves with the cartridge.** What the rack traps is gone with the filter, exactly
+  like pouring through the vanilla pitcher: nothing is converted back into liquid. A
+  container holding acid or another non-water liquid therefore gets its particles cleaned
+  out too — the acid itself is not touched.
 - **Ordering matches the vanilla purifier.** Coarse particles first, with
   `mineral` / `chemical_contaminant` / `heavy_metal` coming out last.
 
@@ -118,6 +120,9 @@ image is a full 3×3 item. Sizes that are not multiples of 16 are silently trunc
 - **One container slot.** Batch filtering would need `GameGridInventory(1, 4)` and a loop.
 - **Cannot remove microbes.** Water filters never could; that is `uv_filter`'s job, and it is
   a drag-on tool with no durability, so the rack rejects it the same way the water pitcher does.
+- **Dissolved chemicals stay.** Acid, base, alcohol and the like have a smaller particle size
+  than a cartridge's `FILTER_SIZE_TAG`, so the rack passes them through untouched — again the
+  same rule the vanilla pitcher applies.
 - **Purity ceiling of 99.01%.** Inherited from the vanilla purifier with no module bonuses.
   It is also what makes the filtering loop terminate.
 - **Dr. Jackson only.** He sells it; it is in no loot table.

@@ -152,10 +152,13 @@ namespace FilterMachine
             string waterPart = Liquid.GetCurrentPartFromId("water");
             int waterVolume = container.GetTagReadonly(waterPart).GetInt();
 
-            // Same ceiling the built-in purifier applies with no module bonuses: a pass never
-            // strips the last fraction of contamination, which also bounds the loop.
-            long floor = (long)totalVolume * (10000 - MachinePurifier.GetMaxPurityCap(0)) / 10000;
-            long budget = Math.Max(0L, (long)totalVolume - waterVolume - floor);
+            // Pouring through a pitcher stops at the purifier's ceiling with no module
+            // bonuses: purity (water over everything left) never passes the cap, so this
+            // much contamination has to stay behind. It also bounds the loop. A container
+            // without water keeps nothing behind, so its dirt can be filtered out too.
+            int cap = Math.Max(1, MachinePurifier.GetMaxPurityCap(0));
+            long keep = (long)waterVolume * (10000 - cap) / cap;
+            long budget = Math.Max(0L, (long)totalVolume - waterVolume - keep);
 
             HashSet<string> blocked = new HashSet<string>();
             FilterRotation rotation = new FilterRotation(filters);
@@ -194,7 +197,7 @@ namespace FilterMachine
                     continue;
                 }
 
-                int credited = RemoveAndCreditWater(container, target.identifier, removed);
+                int credited = TakeContaminant(container, target.identifier, removed);
                 if (credited <= 0)
                 {
                     blocked.Add(target.identifier);
@@ -270,19 +273,23 @@ namespace FilterMachine
             }
         }
 
-        private static int RemoveAndCreditWater(GameItem container, string liquidId, int amount)
+        /// <summary>
+        /// Takes the contaminant out of the container. What the cartridge traps leaves with
+        /// it, exactly like pouring through the vanilla pitcher, so nothing is converted back
+        /// into liquid and a container holding acid or another non-water liquid works too.
+        /// </summary>
+        private static int TakeContaminant(GameItem container, string liquidId, int amount)
         {
-            int removed = WaterHelper.RemoveContaminantFromContainer(container, liquidId, amount, 0);
+            string part = Liquid.GetCurrentPartFromId(liquidId);
+            int current = container.GetTagReadonly(part).GetInt();
+            int removed = Math.Min(current, amount);
             if (removed <= 0)
             {
                 return 0;
             }
 
-            // The game's purifier turns filtered contaminants into clean water; do the same so
-            // the container keeps its volume instead of quietly losing liquid.
-            string waterPart = Liquid.GetCurrentPartFromId("water");
-            int water = container.GetTagReadonly(waterPart).GetInt();
-            container.ModifyTag(waterPart, state => state.Enable().SetInt(water + removed));
+            int remaining = current - removed;
+            container.ModifyTag(part, state => state.Enable().SetInt(remaining));
             WaterFeatureHelper.UpdateWaterFeature(container, false);
             return removed;
         }
