@@ -17,9 +17,12 @@ container, press **Start**, and the rack works through it.
 
 Pressing Start runs the water in the container through the rack:
 
-- **Even wear.** The pass takes one turn per cartridge, walking the rack in its own order
-  and cycling back to the start. Every filter loses the same durability; a cartridge that
-  reaches zero simply drops out of the rotation, so the rest carry on evenly.
+- **Even wear, one cartridge per round.** Every contaminant gets one turn on the same
+  cartridge, coarsest particles first, with `mineral` / `chemical_contaminant` /
+  `heavy_metal` coming out last; then the next cartridge takes over. Each filter does the
+  work the previous one did, so the rack wears down together, a cartridge at zero drops out
+  of the rotation, and a rack that runs dry halfway leaves every contaminant partly cleaned
+  instead of finishing one and never touching the rest.
 - **Game-accurate numbers.** Filtering goes through the game's own `WaterHelper.HandleFilter`,
   so particle-size checks, `filterVolumeRemoved` and `filterDurabilityUsage` match the
   vanilla water pitcher exactly.
@@ -27,8 +30,6 @@ Pressing Start runs the water in the container through the rack:
   like pouring through the vanilla pitcher: nothing is converted back into liquid. A
   container holding acid or another non-water liquid therefore gets its particles cleaned
   out too — the acid itself is not touched.
-- **Ordering matches the vanilla purifier.** Coarse particles first, with
-  `mineral` / `chemical_contaminant` / `heavy_metal` coming out last.
 
 ## Install
 
@@ -123,8 +124,11 @@ image is a full 3×3 item. Sizes that are not multiples of 16 are silently trunc
 - **Dissolved chemicals stay.** Acid, base, alcohol and the like have a smaller particle size
   than a cartridge's `FILTER_SIZE_TAG`, so the rack passes them through untouched — again the
   same rule the vanilla pitcher applies.
-- **Purity ceiling of 99.01%.** Inherited from the vanilla purifier with no module bonuses.
-  It is also what makes the filtering loop terminate.
+- **No purity ceiling.** Nothing is held back the way the purifier machine holds back
+  contamination, so a pass can strip the container to zero. The only residue is the bit a
+  cartridge cannot trap in a single bite (`filterMinimumPurity`: 0.16% of the bite for
+  mineral / organic waste / physical contaminant, 0.2% for microplastic); the next turn
+  works on that remainder.
 - **Dr. Jackson only.** He sells it; it is in no loot table.
 
 ## License

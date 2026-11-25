@@ -139,107 +139,91 @@ namespace FilterMachine
             }
         }
 
-        /// <returns>Total contaminant volume (in uL) converted into water.</returns>
+        /// <returns>Total contaminant volume (in uL) the rack trapped.</returns>
         private static long FilterWater(GameItem container, List<GameItem> filters)
         {
-            Liquid[] liquids = Liquid.Liquids.ToArray();
-            if (liquids.Length == 0)
+            List<Liquid> contaminants = Contaminants();
+            if (contaminants.Count == 0)
             {
                 return 0;
             }
-
-            int totalVolume = WaterHelper.GetTotalVolume(container);
-            string waterPart = Liquid.GetCurrentPartFromId("water");
-            int waterVolume = container.GetTagReadonly(waterPart).GetInt();
-
-            // Pouring through a pitcher stops at the purifier's ceiling with no module
-            // bonuses: purity (water over everything left) never passes the cap, so this
-            // much contamination has to stay behind. It also bounds the loop. A container
-            // without water keeps nothing behind, so its dirt can be filtered out too.
-            int cap = Math.Max(1, MachinePurifier.GetMaxPurityCap(0));
-            long keep = (long)waterVolume * (10000 - cap) / cap;
-            long budget = Math.Max(0L, (long)totalVolume - waterVolume - keep);
 
             HashSet<string> blocked = new HashSet<string>();
             FilterRotation rotation = new FilterRotation(filters);
             long removedTotal = 0L;
 
-            for (int guard = 0; guard < IterationLimit && budget > 0; guard++)
+            // One round spends a turn of every contaminant on the same cartridge, so each
+            // filter does exactly the work the one before it did (wear stays even) and a rack
+            // that runs dry halfway leaves every contaminant partly cleaned instead of
+            // finishing the first one and never touching the rest. Building the queue once
+            // per pass, instead of scanning the liquid list for every bite, is what keeps the
+            // loop cheap: one tag read per bite instead of one per liquid.
+            for (int round = 0; round < IterationLimit; round++)
             {
-                Liquid target = PickContaminant(container, liquids, blocked);
-                if (target == null)
-                {
-                    break;
-                }
-
                 GameItem filter = rotation.Next();
                 if (filter == null)
                 {
                     break;
                 }
 
-                int current = container.GetTagReadonly(target.currentPart).GetInt();
-                if (current <= 0)
+                long removedThisRound = 0L;
+                foreach (Liquid target in contaminants)
                 {
-                    continue;
+                    if (blocked.Contains(target.identifier))
+                    {
+                        continue;
+                    }
+
+                    int current = container.GetTagReadonly(target.currentPart).GetInt();
+                    if (current <= 0)
+                    {
+                        continue;
+                    }
+
+                    int step = Math.Max(1, target.filterVolumeRemoved);
+                    int chunk = Math.Min(current, step);
+                    int leftover = WaterHelper.HandleFilter(target.identifier, chunk, container, filter);
+                    int removed = chunk - leftover;
+
+                    // HandleFilter hands back the amount untouched when this filter cannot take
+                    // the contaminant; no cartridge can take it, so drop it from the rounds.
+                    if (removed <= 0)
+                    {
+                        blocked.Add(target.identifier);
+                        continue;
+                    }
+
+                    int credited = RemoveContaminant(container, target.identifier, removed);
+                    if (credited <= 0)
+                    {
+                        blocked.Add(target.identifier);
+                        continue;
+                    }
+
+                    removedTotal += credited;
+                    removedThisRound += credited;
                 }
 
-                int step = Math.Max(1, target.filterVolumeRemoved);
-                int chunk = (int)Math.Min(Math.Min(current, step), budget);
-                int leftover = WaterHelper.HandleFilter(target.identifier, chunk, container, filter);
-                int removed = chunk - leftover;
-
-                // HandleFilter hands back the amount untouched when this filter cannot take
-                // the contaminant; remember it and move on instead of stopping the pass.
-                if (removed <= 0)
+                if (removedThisRound <= 0)
                 {
-                    blocked.Add(target.identifier);
-                    continue;
+                    break;
                 }
-
-                int credited = TakeContaminant(container, target.identifier, removed);
-                if (credited <= 0)
-                {
-                    blocked.Add(target.identifier);
-                    continue;
-                }
-
-                removedTotal += credited;
-                budget -= credited;
             }
 
             return removedTotal;
         }
 
-        private static Liquid PickContaminant(GameItem container, Liquid[] liquids, HashSet<string> blocked)
+        /// <summary>
+        /// The contaminants the rack can work on, coarsest particles first, with the three
+        /// the vanilla purifier saves for last at the end of the queue.
+        /// </summary>
+        private static List<Liquid> Contaminants()
         {
-            Liquid best = null;
-            int bestKey = int.MaxValue;
-
-            foreach (Liquid liquid in liquids)
-            {
-                if (liquid.identifier == "water" || !liquid.canBeRemovedByPurifier)
-                {
-                    continue;
-                }
-                if (blocked.Contains(liquid.identifier))
-                {
-                    continue;
-                }
-                if (container.GetTagReadonly(liquid.currentPart).GetInt() <= 0)
-                {
-                    continue;
-                }
-
-                int key = (RemovedLast.Contains(liquid.identifier) ? 1000000 : 0) - liquid.particleSize;
-                if (key < bestKey)
-                {
-                    bestKey = key;
-                    best = liquid;
-                }
-            }
-
-            return best;
+            return Liquid.Liquids
+                .Where(liquid => liquid.identifier != "water" && liquid.canBeRemovedByPurifier)
+                .OrderBy(liquid => RemovedLast.Contains(liquid.identifier) ? 1000000 : 0)
+                .ThenByDescending(liquid => liquid.particleSize)
+                .ToList();
         }
 
         /// <summary>
@@ -274,11 +258,12 @@ namespace FilterMachine
         }
 
         /// <summary>
-        /// Takes the contaminant out of the container. What the cartridge traps leaves with
-        /// it, exactly like pouring through the vanilla pitcher, so nothing is converted back
-        /// into liquid and a container holding acid or another non-water liquid works too.
+        /// Removes that much of one contaminant from the container. What the cartridge traps
+        /// leaves with it, exactly like pouring through the vanilla pitcher, so nothing is
+        /// converted back into liquid and a container holding acid or another non-water
+        /// liquid works too.
         /// </summary>
-        private static int TakeContaminant(GameItem container, string liquidId, int amount)
+        private static int RemoveContaminant(GameItem container, string liquidId, int amount)
         {
             string part = Liquid.GetCurrentPartFromId(liquidId);
             int current = container.GetTagReadonly(part).GetInt();
