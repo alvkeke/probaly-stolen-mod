@@ -1,32 +1,33 @@
 # FilterMachine
 
 A machine mod for **Probably Stolen** that racks up to 36 water filters and spends
-their durability evenly to clean water you already own.
+their durability evenly to strip the contamination out of a liquid you already own.
 
-The base game can only filter water *as it is poured* into a pitcher. There is no
-way to clean a bottle that is already dirty. This machine adds that: load a dirty
-container, press **Start**, and the rack works through it.
+The base game can only filter *as it is poured* into a pitcher. There is no way to
+clean a container that is already dirty. This machine adds that: load a dirty container,
+press **Start**, and the rack works through it — water or any other liquid, since what
+filters take out is the contamination, not the liquid itself.
 
 中文说明见 [README.zh-CN.md](README.zh-CN.md)。
 
 ## What it does
 
 - **Filter Rack** — 6×6 grid, 36 slots. Accepts `water_filter` and `water_filter_adv`.
-- **Water** — one slot for any liquid container (bottles, jugs, pitchers, the water tank).
+- **Liquid** — one slot for any liquid container (bottles, jugs, pitchers, the water tank, even acid).
 - **Control** — Start button, purity bar, status line.
 
-Pressing Start runs the water in the container through the rack:
+Pressing Start runs the liquid in the container through the rack:
 
-- **Even wear, one cartridge per round.** Every contaminant gets one turn on the same
-  cartridge, coarsest particles first, with `mineral` / `chemical_contaminant` /
-  `heavy_metal` coming out last; then the next cartridge takes over. Each filter does the
-  work the previous one did, so the rack wears down together, a cartridge at zero drops out
-  of the rotation, and a rack that runs dry halfway leaves every contaminant partly cleaned
-  instead of finishing one and never touching the rest.
+- **Even wear, one filter per round.** Every contaminant gets one turn on the same
+  filter, coarsest particles first, with `mineral` / `chemical_contaminant` /
+  `heavy_metal` coming out last; then the next filter takes over. Each filter does
+  the work the previous one did, so the rack wears down together, a spent filter drops
+  out of the rotation, and a rack that runs dry halfway leaves every contaminant partly
+  cleaned instead of finishing one and never touching the rest.
 - **Game-accurate numbers.** Filtering goes through the game's own `WaterHelper.HandleFilter`,
   so particle-size checks, `filterVolumeRemoved` and `filterDurabilityUsage` match the
   vanilla water pitcher exactly.
-- **Dirt leaves with the cartridge.** What the rack traps is gone with the filter, exactly
+- **Dirt leaves with the filter.** What the rack traps is gone with it, exactly
   like pouring through the vanilla pitcher: nothing is converted back into liquid. A
   container holding acid or another non-water liquid therefore gets its particles cleaned
   out too — the acid itself is not touched.
@@ -122,11 +123,11 @@ image is a full 3×3 item. Sizes that are not multiples of 16 are silently trunc
 - **Cannot remove microbes.** Water filters never could; that is `uv_filter`'s job, and it is
   a drag-on tool with no durability, so the rack rejects it the same way the water pitcher does.
 - **Dissolved chemicals stay.** Acid, base, alcohol and the like have a smaller particle size
-  than a cartridge's `FILTER_SIZE_TAG`, so the rack passes them through untouched — again the
+  than a filter's `FILTER_SIZE_TAG`, so the rack passes them through untouched — again the
   same rule the vanilla pitcher applies.
 - **No purity ceiling.** Nothing is held back the way the purifier machine holds back
   contamination, so a pass can strip the container to zero. The only residue is the bit a
-  cartridge cannot trap in a single bite (`filterMinimumPurity`: 0.16% of the bite for
+  filter cannot trap in a single bite (`filterMinimumPurity`: 0.16% of the bite for
   mineral / organic waste / physical contaminant, 0.2% for microplastic); the next turn
   works on that remainder.
 - **Dr. Jackson only.** He sells it; it is in no loot table.

@@ -14,7 +14,7 @@ namespace FilterMachine
         private const int RackHeight = 6;
         private const int IterationLimit = 200000;
 
-        private static readonly HashSet<string> RemovedLast = new HashSet<string>
+        private static readonly HashSet<string> SavedForLast = new HashSet<string>
         {
             "mineral",
             "chemical_contaminant",
@@ -58,17 +58,17 @@ namespace FilterMachine
         private static GameItem CreateMachine()
         {
             GameGridInventory rack = new GameGridInventory(RackWidth, RackHeight);
-            // Accept spent cartridges too: the slot predicate also runs when a save is restored,
-            // and a spent cartridge must not vanish from the rack on load. uv_filter carries the
+            // Accept spent filters too: the slot predicate also runs when a save is restored,
+            // and a spent filter must not vanish from the rack on load. uv_filter carries the
             // WATER_FILTER tag but is a drag-on tool with no durability, so keep it out the same
             // way the game's own water pitcher does.
             rack.mayInventoryAddItemFunc = (item, _) =>
                 IsWaterFilter(item) && item.identifier != "uv_filter" && GeneralHelper.IsItemOwned(item);
 
-            GameSlotInventory waterSlot = new GameSlotInventory();
-            waterSlot.mayInventoryAddItemFunc = (item, _) =>
+            GameSlotInventory containerSlot = new GameSlotInventory();
+            containerSlot.mayInventoryAddItemFunc = (item, _) =>
                 item != null && item.IsTag(WaterHelper.LIQUID_CONTAINER_TAG) && GeneralHelper.IsItemOwned(item);
-            waterSlot.SetBackgroundFadeSprite("Items/water_container4", "xl");
+            containerSlot.SetBackgroundFadeSprite("Items/water_container4", "xl");
 
             MachineryButton startButton = new MachineryButton(L("fm_button_start", "Start"), null);
             MachineryProgressBar purityBar = new MachineryProgressBar(0f);
@@ -77,7 +77,7 @@ namespace FilterMachine
             PixelWindow window = MachineHelper.CreateMachineryWindow(
                 true,
                 MachineHelper.Panel(L("fm_panel_filters", "Filter Rack"), rack, "filters"),
-                MachineHelper.Panel(L("fm_panel_water", "Water"), waterSlot, "water"),
+                MachineHelper.Panel(L("fm_panel_container", "Liquid"), containerSlot, "water"),
                 MachineHelper.Panel(
                     L("fm_panel_control", "Control"),
                     MachineryStack.Vertical(startButton, purityBar, status),
@@ -96,21 +96,21 @@ namespace FilterMachine
 
             MachineryHelper.InitMachinery(machine, 0);
 
-            startButton.SetCallback(() => RunPass(machine, rack, waterSlot, purityBar, status));
+            startButton.SetCallback(() => RunPass(machine, rack, containerSlot, purityBar, status));
             return machine;
         }
 
         private static void RunPass(
             GameItem machine,
             GameGridInventory rack,
-            GameSlotInventory waterSlot,
+            GameSlotInventory containerSlot,
             MachineryProgressBar purityBar,
             MachineryText status)
         {
-            GameItem container = waterSlot.childItem;
+            GameItem container = containerSlot.childItem;
             if (container == null || WaterHelper.IsEmpty(container))
             {
-                SetStatus(status, "fm_status_no_water", "Load a water container");
+                SetStatus(status, "fm_status_no_container", "Load a liquid container");
                 return;
             }
 
@@ -121,7 +121,7 @@ namespace FilterMachine
                 return;
             }
 
-            long removed = FilterWater(container, filters);
+            long removed = FilterContaminants(container, filters);
             int rawPurity = WaterHelper.GetWaterPurity(container);
             purityBar.SetValue(Mathf.Clamp01(rawPurity / 10000f));
 
@@ -140,7 +140,7 @@ namespace FilterMachine
         }
 
         /// <returns>Total contaminant volume (in uL) the rack trapped.</returns>
-        private static long FilterWater(GameItem container, List<GameItem> filters)
+        private static long FilterContaminants(GameItem container, List<GameItem> filters)
         {
             List<Liquid> contaminants = Contaminants();
             if (contaminants.Count == 0)
@@ -152,7 +152,7 @@ namespace FilterMachine
             FilterRotation rotation = new FilterRotation(filters);
             long removedTotal = 0L;
 
-            // One round spends a turn of every contaminant on the same cartridge, so each
+            // One round spends a turn of every contaminant on the same filter, so each
             // filter does exactly the work the one before it did (wear stays even) and a rack
             // that runs dry halfway leaves every contaminant partly cleaned instead of
             // finishing the first one and never touching the rest. Building the queue once
@@ -186,7 +186,7 @@ namespace FilterMachine
                     int removed = chunk - leftover;
 
                     // HandleFilter hands back the amount untouched when this filter cannot take
-                    // the contaminant; no cartridge can take it, so drop it from the rounds.
+                    // the contaminant; no filter can take it, so drop it from the rounds.
                     if (removed <= 0)
                     {
                         blocked.Add(target.identifier);
@@ -221,15 +221,15 @@ namespace FilterMachine
         {
             return Liquid.Liquids
                 .Where(liquid => liquid.identifier != "water" && liquid.canBeRemovedByPurifier)
-                .OrderBy(liquid => RemovedLast.Contains(liquid.identifier) ? 1000000 : 0)
+                .OrderBy(liquid => SavedForLast.Contains(liquid.identifier) ? 1000000 : 0)
                 .ThenByDescending(liquid => liquid.particleSize)
                 .ToList();
         }
 
         /// <summary>
-        /// Hands out the cartridges of one pass one turn at a time, in the order they sit in
-        /// the rack, so every filter loses the same durability instead of the rack burning
-        /// down one cartridge at a time. A cartridge at zero drops out of the rotation.
+        /// Hands out the filters of one pass one at a time, in the order they sit in the
+        /// rack, so every filter loses the same durability instead of the rack burning one
+        /// down at a time. A spent filter drops out of the rotation.
         /// </summary>
         private sealed class FilterRotation
         {
@@ -258,7 +258,7 @@ namespace FilterMachine
         }
 
         /// <summary>
-        /// Removes that much of one contaminant from the container. What the cartridge traps
+        /// Removes that much of one contaminant from the container. What the filter traps
         /// leaves with it, exactly like pouring through the vanilla pitcher, so nothing is
         /// converted back into liquid and a container holding acid or another non-water
         /// liquid works too.

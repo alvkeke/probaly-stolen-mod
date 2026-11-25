@@ -75,7 +75,7 @@ def draw():
         rect(px, drop_x - half, y, drop_x + half, y, WATER)
     disc(px, drop_x, drop_y + 1, max(1, radius // 3), WATER_DARK)
 
-    # Filter matrix: three by three cartridges, the bottom row already spent.
+    # Filter matrix: three by three filters, the bottom row already spent.
     cell = max(2, at(0.105))
     gap = max(1, at(0.042))
     origin_x = at(0.56)

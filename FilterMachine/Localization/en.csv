@@ -1,13 +1,13 @@
 fm_name,Filter Machine
-fm_desc,"Racks up to 36 water filters and runs water through them. Load a water container, press Start, and the machine spends filter durability evenly across the whole rack."
+fm_desc,"Racks up to 36 water filters and runs the liquid through them. Load a liquid container, press Start, and the machine spends filter durability evenly across the whole rack to strip the contamination out."
 fm_flavor,"Every bottle that leaves this thing tastes faintly of guilt."
 fm_panel_filters,Filter Rack
-fm_panel_water,Water
+fm_panel_container,Liquid
 fm_panel_control,Control
 fm_button_start,Start
 fm_label_status,Status
 fm_status_idle,Idle
-fm_status_no_water,Load a water container
+fm_status_no_container,Load a liquid container
 fm_status_no_filters,Load filters
 fm_status_filtered,"Purity {0}% - removed {1} mL"
 fm_status_clean,"Purity {0}% - nothing to filter"
