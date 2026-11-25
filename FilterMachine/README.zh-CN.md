@@ -30,7 +30,14 @@ English version: [README.md](README.md)
 
 ## 在游戏里拿到机器
 
-目前没有加入任何掉落表，所以用开发菜单：
+机器在两位卖水相关装备的商人处上架，按物品自身价值出售：
+
+- **退休水商** —— 每周第 3 天来店里一次的顾客，只有「水商开局」或解锁 Water Trader 后才会出现。
+  他的货架是 18×4 格，自己的货已经快占满，所以机器放不下时会随机挤掉他一件大件货给它腾位置；
+  他的滤芯、试纸、净化片这些小耗材仍然留在货架上。
+- **杰克逊博士** —— 发明家的货单里会带上一台，无论你去他的工坊还是他来你的店里。
+
+调试时仍然可以用开发菜单：
 
 1. 在 `Probably Stolen.exe` 同级目录建一个空的 `dev.txt`，重启游戏。
 2. 进入存档，按 **F9** → **Spawn** 列 → **Spawn Filter Machine**。
@@ -73,6 +80,7 @@ tools/package.sh   # -> dist/FilterMachine.zip
 ```
 FilterMachine/
 ├── ModEntry.cs              IMod 入口、物品工厂、过滤流程
+├── VendorStock.cs           把机器上架到退休水商与杰克逊博士的货架
 ├── FilterMachine.csproj     netstandard2.1；引用来自 ../Directory.Build.props
 ├── manifest.xml             模组清单（ID 为 filter_machine）
 ├── Textures/Items/
@@ -100,7 +108,7 @@ FilterMachine/
 - **杀不掉微生物** —— 水滤芯本来就不杀菌，那是 `uv_filter` 的职责；它是拖到容器上用的工具、没有耐久，
   所以滤芯架按原版滤水壶的写法把它排除了。
 - **纯度上限 99.01%** —— 沿用原版净化机无模块档位，同时也是过滤循环的终止条件。
-- **不在任何掉落表里** —— 目前只能刷出来。
+- **只在两位商人处出售** —— 退休水商和杰克逊博士，不在任何掉落表里。
 
 ## 许可证
 

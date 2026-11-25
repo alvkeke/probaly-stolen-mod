@@ -8,7 +8,7 @@ of this repository and installs into its own folder under the game's `Mods/`.
 
 | Mod | What it does | Install folder |
 |---|---|---|
-| [FilterMachine](FilterMachine/) | A 3×3 water filter machine: a 6×6 filter rack, one liquid container slot and a Start button that spends filter durability evenly to clean water you already own. | `Mods/FilterMachine/` |
+| [FilterMachine](FilterMachine/) | A 3×3 water filter machine: a 6×6 filter rack, one liquid container slot and a Start button that spends filter durability evenly to clean water you already own. Sold by the retired water merchant and Dr. Jackson. | `Mods/FilterMachine/` |
 
 ## Requirements
 

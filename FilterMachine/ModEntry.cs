@@ -32,12 +32,14 @@ namespace FilterMachine
         public void OnEnable()
         {
             ModHook.OnModItemDirectoryInit += RegisterItems;
+            VendorStock.Enable(log);
             ModHelper.AddDebugFunction(ModId, ModHelper.DEBUG_CATEGORY_SPAWN, "Spawn Filter Machine", SpawnMachine, tall: true);
         }
 
         public void OnDisable()
         {
             ModHook.OnModItemDirectoryInit -= RegisterItems;
+            VendorStock.Disable();
             ModHelper.RemoveDebugFunctions(ModId);
         }
 

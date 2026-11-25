@@ -39,7 +39,17 @@ show nothing to approve beyond the file fingerprint.
 
 ## Getting a machine in game
 
-The mod does not add the machine to any loot table yet, so use the dev menu:
+The machine is stocked by the two vendors that sell water gear, at its own value:
+
+- **The retired water merchant** — a customer who visits on day 3 of each station week,
+  once the run started as a water merchant or the Water Trader upgrade is unlocked. His
+  counter is 18×4 cells and his own gear already fills nearly all of it, so when the
+  machine does not fit, one of his larger goods (picked at random) makes way for it. His
+  filters, test strips and tablets stay on the table.
+- **Dr. Jackson** — the inventor lists it with the rest of his catalogue, both at his
+  workshop and on the days he visits your store.
+
+For testing there is still the dev menu:
 
 1. Create an empty `dev.txt` next to `Probably Stolen.exe` and restart the game.
 2. In a save, press **F9** → **Spawn** column → **Spawn Filter Machine**.
@@ -85,6 +95,7 @@ This mod occupies one folder of the repository:
 ```
 FilterMachine/
 ├── ModEntry.cs              IMod entry, item factory, filtering pass
+├── VendorStock.cs           stocks the machine at the retired water merchant and Dr. Jackson
 ├── FilterMachine.csproj     netstandard2.1; references come from ../Directory.Build.props
 ├── manifest.xml             mod manifest (ID filter_machine)
 ├── Textures/Items/
@@ -114,7 +125,8 @@ image is a full 3×3 item. Sizes that are not multiples of 16 are silently trunc
   a drag-on tool with no durability, so the rack rejects it the same way the water pitcher does.
 - **Purity ceiling of 99.01%.** Inherited from the vanilla purifier with no module bonuses.
   It is also what makes the filtering loop terminate.
-- **Not in any loot table.** Spawn only, for now.
+- **Two vendors only.** The retired water merchant and Dr. Jackson sell it; it is in no
+  loot table.
 
 ## License
 
