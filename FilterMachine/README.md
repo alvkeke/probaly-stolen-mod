@@ -17,8 +17,9 @@ container, press **Start**, and the rack works through it.
 
 Pressing Start runs the water in the container through the rack:
 
-- **Even wear.** Each step spends a single durability point on the freshest cartridge,
-  then re-picks. All 36 filters wear down together instead of burning through one at a time.
+- **Even wear.** The pass takes one turn per cartridge, walking the rack in its own order
+  and cycling back to the start. Every filter loses the same durability; a cartridge that
+  reaches zero simply drops out of the rotation, so the rest carry on evenly.
 - **Game-accurate numbers.** Filtering goes through the game's own `WaterHelper.HandleFilter`,
   so particle-size checks, `filterVolumeRemoved` and `filterDurabilityUsage` match the
   vanilla water pitcher exactly.

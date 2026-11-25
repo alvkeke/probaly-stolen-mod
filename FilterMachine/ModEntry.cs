@@ -158,6 +158,7 @@ namespace FilterMachine
             long budget = Math.Max(0L, (long)totalVolume - waterVolume - floor);
 
             HashSet<string> blocked = new HashSet<string>();
+            FilterRotation rotation = new FilterRotation(filters);
             long removedTotal = 0L;
 
             for (int guard = 0; guard < IterationLimit && budget > 0; guard++)
@@ -168,7 +169,7 @@ namespace FilterMachine
                     break;
                 }
 
-                GameItem filter = PickFreshestFilter(filters);
+                GameItem filter = rotation.Next();
                 if (filter == null)
                 {
                     break;
@@ -239,25 +240,34 @@ namespace FilterMachine
         }
 
         /// <summary>
-        /// Always spends the freshest filter, so wear evens out across the whole rack
-        /// instead of burning down one cartridge at a time.
+        /// Hands out the cartridges of one pass one turn at a time, in the order they sit in
+        /// the rack, so every filter loses the same durability instead of the rack burning
+        /// down one cartridge at a time. A cartridge at zero drops out of the rotation.
         /// </summary>
-        private static GameItem PickFreshestFilter(List<GameItem> filters)
+        private sealed class FilterRotation
         {
-            GameItem best = null;
-            int bestDurability = 0;
+            private readonly List<GameItem> filters;
+            private int cursor;
 
-            foreach (GameItem filter in filters)
+            public FilterRotation(List<GameItem> filters)
             {
-                int durability = DurabilityHelper.GetRealDurability(filter);
-                if (durability > bestDurability)
-                {
-                    bestDurability = durability;
-                    best = filter;
-                }
+                this.filters = filters;
             }
 
-            return best;
+            public GameItem Next()
+            {
+                for (int i = 0; i < filters.Count; i++)
+                {
+                    int index = (cursor + i) % filters.Count;
+                    if (DurabilityHelper.GetRealDurability(filters[index]) > 0)
+                    {
+                        cursor = (index + 1) % filters.Count;
+                        return filters[index];
+                    }
+                }
+
+                return null;
+            }
         }
 
         private static int RemoveAndCreditWater(GameItem container, string liquidId, int amount)
